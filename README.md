@@ -2,6 +2,7 @@
 Collect proberequests from wifi
 the redis-server dependency here means a redis server needs to be available, it does not have to be on the same machine.
 
+This data can then be visualised by https://github.com/liliakai/proberequests
 
 ## hopper.pl 
 Channels hops wifi devices, takes multiple --device=<name> arguments
