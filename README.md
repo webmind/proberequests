@@ -41,5 +41,5 @@ Depends on:
 * libpoe-perl
 
 ## Preparing wireless devices
-sudo /sbin/iw phy <phy-device-name> interface add <name-of-monitor-device> type monitor
-sudo /sbin/ip link set up dev <name-of-monitor-device>
+* sudo /sbin/iw phy <phy-device-name> interface add <name-of-monitor-device> type monitor
+* sudo /sbin/ip link set up dev <name-of-monitor-device>
