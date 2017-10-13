@@ -66,6 +66,12 @@ while (my $line = <$tshark>) {
                     $udp->send($osc->message('/mac', $macblobtypes, @macblob));
                     print "Send mac over OSC($h{OSCPeer}:$h{OSCPort}): $macAddress\n"
                         if($h{DEBUG});
+
+                    ## Send SN
+                    $udp->send($osc->message('/sn', 'i', $SN));
+                    print "Send SN over OSC($h{OSCPeer}:$h{OSCPort}): $SN\n"
+                        if($h{DEBUG});
+
                 }
 
                 $struct->{firstSeen} = time if(!defined($struct->{lastseen}));
