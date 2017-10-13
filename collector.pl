@@ -26,10 +26,12 @@ open(my $tshark, "$h{tsharkPath} -i $h{device} -n -l subtype probereq |") || die
 while (my $line = <$tshark>) {
     chomp $line;
     #if($line = m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SSID=([a-zA-ZÀ-ÿ0-9"\s\!\@\$\%\^\&\*\(\)\_\-\+\=\[\]\{\}\,\.\?\>\<]+)/) {
-    if($line =~ m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SSID=(.+)$/) {
-        if($2 ne "Broadcast") { # Ignore broadcasts
+    #if($line =~ m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SSID=(.+)$/) {
+    if($line =~ m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SN=([0-9]+),.+SSID=(.+)$/) {
+        if($3 ne "Broadcast") { # Ignore broadcasts
             my $macAddress = $1;
-            my $SSID = $2;
+            my $SN = $2;
+            my $SSID = $3;
             my $struct = readredis($redis, $SSID);
             if(!defined($struct->{lastseen}) or 
                !defined($struct->{macs}->{$macAddress}) or 
