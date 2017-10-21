@@ -11,12 +11,13 @@ $h{DEBUG} = 0;
 $h{tsharkPath} = '/usr/bin/tshark';
 $h{redis} = '127.0.0.1:6379';
 $h{redisname} = 'probereqdb';
+$h{redisdb} = 0;
 $h{OSCPort} = 5555;
 $h{OSCPeer} = '';
-GetOptions (\%h, 'device=s', 'redis=s', 'tsharkPath=s', 'OSCPort=i', 'OSCPeer=s', 'DEBUG');
+GetOptions (\%h, 'device=s', 'redis=s', 'redisname=s', 'redisdb=i', 'tsharkPath=s', 'OSCPort=i', 'OSCPeer=s', 'DEBUG');
 
 if((!defined $h{device})) {
-    print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--tsharkPath=/path/to/tshark> <--DEBUG>\n\n";
+    print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber> <--tsharkPath=/path/to/tshark> <--DEBUG>\n\n";
     exit 1;
 }
 
@@ -29,13 +30,21 @@ if($h{OSCPeer}) {
     $osc = Protocol::OSC->new;
 }
 
+my $monitor_mode;
+if(defined $h{monitor}) {
+    $monitor_mode = '-I'
+}
+
 my $redis = Redis->new(server => $h{redis},
                        name   => $h{redisname});
+
+$redis->select($h{redisdb});
+print STDERR "Set Redis DB to: $h{redisdb}" if($h{DEBUG});
 
 my $ssid;
 
 
-open(my $tshark, "$h{tsharkPath} -i $h{device} -n -l subtype probereq |") || die "Cannot spawn tshark process!\n";
+open(my $tshark, "$h{tsharkPath} $monitor_mode -i $h{device} -n -l subtype probereq |") || die "Cannot spawn tshark process!\n";
 while (my $line = <$tshark>) {
     chomp $line;
     #if($line = m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SSID=([a-zA-ZÀ-ÿ0-9"\s\!\@\$\%\^\&\*\(\)\_\-\+\=\[\]\{\}\,\.\?\>\<]+)/) {

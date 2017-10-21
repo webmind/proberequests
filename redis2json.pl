@@ -10,15 +10,19 @@ $h{DEBUG} = 0;
 $h{help} = 0;
 $h{redis} = '127.0.0.1:6379';
 $h{redisname} = 'probereqdb';
-GetOptions (\%h, 'redis=s', 'redisname=s', 'output=s', 'DEBUG', 'help');
+$h{redisdb} = 0;
+GetOptions (\%h, 'redis=s', 'redisname=s', 'redisdb=i', 'output=s', 'DEBUG', 'help');
 
 if($h{help}) {
-    print "Usage: $0 <--output=filename> <--redis=hostname:port> <--redisname=dbname>\n\n";
+    print "Usage: $0 <--output=filename> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber>\n\n";
     exit 1;
 }
 
 my $redis = Redis->new(server => $h{redis},
                        name   => $h{redisname});
+
+$redis->select($h{redisdb});
+
 
 my @keys = $redis->keys('*');
 

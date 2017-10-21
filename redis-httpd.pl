@@ -14,11 +14,12 @@ $h{DEBUG} = 0;
 $h{help} = 0;
 $h{redis} = '127.0.0.1:6379';
 $h{redisname} = 'probereqdb';
+$h{redisdb} = 0;
 $h{listenport} = 8088;
-GetOptions (\%h, 'redis=s', 'redisname=s', 'listenport=i', 'DEBUG', 'help');
+GetOptions (\%h, 'redis=s', 'redisname=s', 'redisdb=i', 'listenport=i', 'DEBUG', 'help');
 
 if($h{help}) {
-    print "Usage: $0 <--listenport=tcp-port> <--redis=hostname:port> <--redisname=dbname>\n\n";
+    print "Usage: $0 <--listenport=tcp-port> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber>\n\n";
     exit 1;
 }
 
@@ -66,6 +67,8 @@ POE::Component::Server::TCP->new(
 
     my $redis = Redis->new(server => $h{redis},
                            name   => $h{redisname});
+
+    $redis->select($h{redisdb}) if($h{redisdb});    
 
     my @keys = $redis->keys('*');
         
