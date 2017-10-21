@@ -3,7 +3,6 @@ use strict;
 use JSON;
 use Getopt::Long;
 use Redis;
-use Protocol::OSC;
 use IO::Socket::INET;
 
 
@@ -25,7 +24,8 @@ if((!defined $h{device})) {
 my $udp;
 my $osc;
 if($h{OSCPeer}) {
-    $udp = IO::Socket::INET->new( PeerAddr => $h{OSCPeer}, PeerPort => $h{OSCPort}, Proto => 'udp', Type => SOCK_DGRAM) || die "Cannot connect via UDP on $h{OSCPeer}:$h{OSCPort} ($!)\n";
+    require Protocol::OSC;
+    $udp = IO::Socket::INET->new( PeerAddr => $h{OSCPeer}, PeerPort => $h{OSCPort}, Proto => 'udp', Type => SOCK_DGRAM ) || die "Cannot connect via UDP on $h{OSCPeer}:$h{OSCPort} ($!)\n";
     $osc = Protocol::OSC->new;
 }
 

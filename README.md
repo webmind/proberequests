@@ -19,8 +19,9 @@ Depends on:
 * redis-server
 * tshark
 * perl
-* libredis-perl
-* libjson-perl
+* libredis-perl (Redis)
+* libjson-perl (JSON)
+* (optional) libprotocol-osc-perl (Protocol::OSC)
 
 ## redis2json.pl
 Dumps the redis database to json, either to STDOUT or a file
@@ -28,8 +29,8 @@ Example: ./redis2json.pl --output=dump.json
 Depends on:
 * redis-server
 * perl
-* libredis-perl
-* libjson-perl
+* libredis-perl (Redis)
+* libjson-perl (JSON)
 
 ## redis-httpd.pl
 Serves the redis database as JSON via a webserver
@@ -37,9 +38,10 @@ Example: ./redis-httpd.pl --listenport=8080
 Depends on:
 * redis-server
 * perl
-* libredis-perl
-* libjson-perl
-* libpoe-perl
+* libredis-perl (Redis)
+* libjson-perl (JSON)
+* libpoe-perl (POE:Component::Server::TCP, POE::Filter::HTTPD)
+* libhttp-message-perl (HTTP::Response)
 
 ## Preparing wireless devices
 * sudo /sbin/iw phy <phy-device-name> interface add <name-of-monitor-device> type monitor
