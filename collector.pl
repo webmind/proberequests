@@ -12,9 +12,10 @@ $h{tsharkPath} = '/usr/bin/tshark';
 $h{redis} = '127.0.0.1:6379';
 $h{redisname} = 'probereqdb';
 $h{redisdb} = 0;
+$h{monitor} = 0;
 $h{OSCPort} = 5555;
 $h{OSCPeer} = '';
-GetOptions (\%h, 'device=s', 'redis=s', 'redisname=s', 'redisdb=i', 'tsharkPath=s', 'OSCPort=i', 'OSCPeer=s', 'DEBUG');
+GetOptions (\%h, 'device=s', 'redis=s', 'redisname=s', 'redisdb=i', 'tsharkPath=s', 'OSCPort=i', 'OSCPeer=s', 'monitor', 'DEBUG');
 
 if((!defined $h{device})) {
     print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber> <--tsharkPath=/path/to/tshark> <--DEBUG>\n\n";
@@ -30,7 +31,7 @@ if($h{OSCPeer}) {
     $osc = Protocol::OSC->new;
 }
 
-my $monitor_mode;
+my $monitor_mode = '';
 if(defined $h{monitor}) {
     $monitor_mode = '-I'
 }
