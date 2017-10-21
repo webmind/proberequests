@@ -18,7 +18,7 @@ $h{OSCPeer} = '';
 GetOptions (\%h, 'device=s', 'redis=s', 'redisname=s', 'redisdb=i', 'tsharkPath=s', 'OSCPort=i', 'OSCPeer=s', 'monitor', 'DEBUG');
 
 if((!defined $h{device})) {
-    print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber> <--tsharkPath=/path/to/tshark> <--DEBUG>\n\n";
+    print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber> <--tsharkPath=/path/to/tshark> <--monitor> <--DEBUG>\n\n";
     exit 1;
 }
 
@@ -40,7 +40,7 @@ my $redis = Redis->new(server => $h{redis},
                        name   => $h{redisname});
 
 $redis->select($h{redisdb});
-print STDERR "Set Redis DB to: $h{redisdb}" if($h{DEBUG});
+print STDERR "Set Redis DB to: $h{redisdb}\n" if($h{DEBUG});
 
 my $ssid;
 
