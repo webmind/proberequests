@@ -58,7 +58,7 @@ while (my $line = <$tshark>) {
             my $struct = readredis($redis, $SSID);
             if(!defined($struct->{lastSeen}) or 
                !defined($struct->{macs}->{$macAddress}) or 
-               ($struct->{lastSeen} - time) >= 1) {
+               (time - $struct->{lastSeen}) >= 1) {
                 print "Spotted $SSID from $macAddress\n" if($h{DEBUG});
 
                 ## Send OSC first if needed
