@@ -8,7 +8,7 @@ use IO::Socket::INET;
 
 my %h;
 $h{DEBUG} = 0;
-$h{tsharkPath} = '/usr/bin/tshark';
+$h{tsharkPath} = 'tshark';
 $h{redis} = '127.0.0.1:6379';
 $h{redisname} = 'probereqdb';
 $h{redisdb} = 0;
