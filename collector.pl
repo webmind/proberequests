@@ -70,7 +70,13 @@ while (my $line = <$tshark>) {
             if(!defined($struct->{lastSeen}) or 
                !defined($struct->{macs}->{$macAddress}) or 
                (time - $struct->{lastSeen}) >= 1) {
-                print "Spotted $SSID from $macAddress\n" if($h{DEBUG});
+                if($h{DEBUG} and !defined($struct->{lastSeen})) {
+                    print "Spotted new $SSID from $macAddress\n";
+                } elsif($h{DEBUG} and !defined($struct->{macs}->{$macAddress}) {
+                    print "Spotted new $macAddress for $SSID\n";
+                } elsif($h{DEBUG}) {
+                    print "Spotted $SSID from $macAddress\n";
+                }
 
                 ## Send OSC first if needed
                 if($udp && $osc) {
@@ -102,7 +108,8 @@ while (my $line = <$tshark>) {
                 $struct->{lastSeen} = time;
                 writeredis($redis, $SSID, $struct);
             } else {
-                print "Double of $SSID?\n" if($h{DEBUG});
+                my $age = time - $struct->{lastSeen};
+                print "Double of $SSID? (lastseen: $struct->{lastSeen}, maccount: $struct->{macs}->{$macAddress},  age: $age)\n" if($h{DEBUG});
             }
         }
     } elsif($h{DEBUG}) {
