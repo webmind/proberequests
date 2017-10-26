@@ -19,6 +19,17 @@ GetOptions (\%h, 'device=s', 'redis=s', 'redisname=s', 'redisdb=i', 'tsharkPath=
 
 if((!defined $h{device})) {
     print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber> <--tsharkPath=/path/to/tshark> <--monitor> <--DEBUG>\n\n";
+    print STDERR 
+"       --device        wireless device for monitoring
+        --redis         redis host:port to connect to (default: 127.0.0.1:6379)
+        --redisname     name of redisconnection (default: probereqdb)
+        --redisdb       database number to use to store data in (default: 0)
+        --tsharkPath    path to tshark binary (default: tshark)
+        --OSCPort       port to sent OSC packets to (default: 5555)
+        --OSCPeer       hostname to sent OSC packets to (default: off)
+        --monitor       tell tshark to set device in monitor mode
+        --DEBUG         provide debugging output
+";
     exit 1;
 }
 
