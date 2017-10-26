@@ -72,7 +72,7 @@ while (my $line = <$tshark>) {
                (time - $struct->{lastSeen}) >= 1) {
                 if($h{DEBUG} and !defined($struct->{lastSeen})) {
                     print "Spotted new $SSID from $macAddress\n";
-                } elsif($h{DEBUG} and !defined($struct->{macs}->{$macAddress}) {
+                } elsif($h{DEBUG} and !defined($struct->{macs}->{$macAddress})) {
                     print "Spotted new $macAddress for $SSID\n";
                 } elsif($h{DEBUG}) {
                     print "Spotted $SSID from $macAddress\n";
