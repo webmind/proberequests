@@ -7,11 +7,11 @@ my %h = ();
 
 $h{iwPath} = '/sbin/iw';
 $h{iwlistPath} = '/sbin/iwlist';
-$h{DEBUG} = 1;
-GetOptions (\%h, 'device=s@');
+$h{DEBUG} = 0;
+GetOptions (\%h, 'device=s@', 'DEBUG');
 
 if(!defined $h{device}) {
-    print "Usage: $0 --device=<wireless device>\n\n";
+    print "Usage: $0 --device=<wireless device> --DEBUG\n\n";
     exit 1;
 }
 
