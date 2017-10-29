@@ -72,8 +72,8 @@ POE::Component::Server::TCP->new(
 
     my @keys = $redis->keys('*');
         
-    my %db;
-    my @jvalues = $redis->mget(@keys);
+    my %db; 
+    my @jvalues = $redis->mget(@keys); # FIXME: what to do when there are no keys 
     
     # Convert all json blobs to hashref structures
     my @values = map { JSON->new->allow_nonref->decode($_); } @jvalues;

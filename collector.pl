@@ -5,9 +5,12 @@ use Getopt::Long;
 use Redis;
 use IO::Socket::INET;
 
+use constant DEBUG  => 1;
+use constant DEBUG2 => 2;
+use constant DEBUG3 => 3;
 
 my %h;
-$h{DEBUG} = 0;
+$h{DEBUG} = 1;
 $h{tsharkPath} = 'tshark';
 $h{redis} = '127.0.0.1:6379';
 $h{redisname} = 'probereqdb';
@@ -40,6 +43,7 @@ if($h{OSCPeer}) {
     require Protocol::OSC;
     $udp = IO::Socket::INET->new( PeerAddr => $h{OSCPeer}, PeerPort => $h{OSCPort}, Proto => 'udp', Type => SOCK_DGRAM ) || die "Cannot connect via UDP on $h{OSCPeer}:$h{OSCPort} ($!)\n";
     $osc = Protocol::OSC->new;
+    log_message(DEBUG, "Prepared UDP for sending OSC messages to $h{OSCPeer}:$h{OSCPort}");
 }
 
 my $monitor_mode = '';
@@ -51,31 +55,42 @@ my $redis = Redis->new(server => $h{redis},
                        name   => $h{redisname});
 
 $redis->select($h{redisdb});
-print STDERR "Set Redis DB to: $h{redisdb}\n" if($h{DEBUG});
+log_message(DEBUG, "Set Redis DB to: $h{redisdb}");
 
 my $ssid;
 
 
-open(my $tshark, "$h{tsharkPath} $monitor_mode -i $h{device} -n -l subtype probereq |") || die "Cannot spawn tshark process!\n";
+my $fields = '-e wlan.sa -e wlan.da -e wlan_mgt.ssid';
+my $tshark_command = "$h{tsharkPath} $monitor_mode -q -i $h{device} -T ek $fields -n -l subtype probereq";
+
+log_message(DEBUG2, "Running [$tshark_command]");
+#open(my $tshark, "$h{tsharkPath} $monitor_mode -i $h{device} -T ek -e wlan.sa -e wlan.da -e wlan_mgt.ssid -n -l subtype probereq |") || die "Cannot spawn tshark process!\n";
+open(my $tshark, "$tshark_command |") or die "Cannot spawn tshark process($!): $tshark_command\n";
 while (my $line = <$tshark>) {
+    next if($line =~ /^\s*$/);
     chomp $line;
-    #if($line = m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SSID=([a-zA-ZÀ-ÿ0-9"\s\!\@\$\%\^\&\*\(\)\_\-\+\=\[\]\{\}\,\.\?\>\<]+)/) {
-    #if($line =~ m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SSID=(.+)$/) {
-    if($line =~ m/\d+\.\d+ ([a-zA-Z0-9:_]+).+SN=([0-9]+),.+SSID=(.+)$/) {
-        if($3 ne "Broadcast") { # Ignore broadcasts
-            my $macAddress = $1;
-            my $SN = $2;
-            my $SSID = $3;
+    log_message(DEBUG3, $line);
+    my $blob = safe_json_decode($line);
+
+    if(defined($blob->{layers}) and 
+       defined($blob->{layers}->{wlan_sa}) and 
+       defined($blob->{layers}->{wlan_da}) and
+       defined($blob->{layers}->{wlan_mgt_ssid})) {
+        my $macAddress = $blob->{layers}->{wlan_sa}->[0];
+        my $SSID = $blob->{layers}->{wlan_mgt_ssid}->[0];
+        if($SSID ne '') {
+
             my $struct = readredis($redis, $SSID);
             if(!defined($struct->{lastSeen}) or 
                !defined($struct->{macs}->{$macAddress}) or 
                (time - $struct->{lastSeen}) >= 1) {
+
                 if($h{DEBUG} and !defined($struct->{lastSeen})) {
-                    print "Spotted new $SSID from $macAddress\n";
+                    log_message(DEBUG, "Spotted new $SSID from $macAddress");
                 } elsif($h{DEBUG} and !defined($struct->{macs}->{$macAddress})) {
-                    print "Spotted new $macAddress for $SSID\n";
+                    log_message(DEBUG, "Spotted new $macAddress for $SSID");
                 } elsif($h{DEBUG}) {
-                    print "Spotted $SSID from $macAddress\n";
+                    log_message(DEBUG, "Spotted $SSID from $macAddress");
                 }
 
                 ## Send OSC first if needed
@@ -84,20 +99,18 @@ while (my $line = <$tshark>) {
                     my @ssidblob = map({ord} split(//, $SSID));
                     my $ssidblobtypes = join('', map({'i'} split(//, $SSID)));
                     $udp->send($osc->message('/network', $ssidblobtypes, @ssidblob));
-                    print "Send network over OSC($h{OSCPeer}:$h{OSCPort}): $SSID\n"
-                        if($h{DEBUG});
-                    
+                    log_message(DEBUG, "Send network over OSC($h{OSCPeer}:$h{OSCPort}): $SSID");
+
                     ## Send mac
                     my @macblob = map({hex} split(/:/, $macAddress));
                     my $macblobtypes = join('', map({'i'} split(/:/, $macAddress)));
                     $udp->send($osc->message('/mac', $macblobtypes, @macblob));
-                    print "Send mac over OSC($h{OSCPeer}:$h{OSCPort}): $macAddress\n"
-                        if($h{DEBUG});
+                    log_message(DEBUG, "Send mac over OSC($h{OSCPeer}:$h{OSCPort}): $macAddress");
 
                     ## Send SN
-                    $udp->send($osc->message('/sn', 'i', $SN));
-                    print "Send SN over OSC($h{OSCPeer}:$h{OSCPort}): $SN\n"
-                        if($h{DEBUG});
+                    #$udp->send($osc->message('/sn', 'i', $SN));
+                    #print "Send SN over OSC($h{OSCPeer}:$h{OSCPort}): $SN\n"
+                    #    if($h{DEBUG});
 
                 }
 
@@ -106,14 +119,21 @@ while (my $line = <$tshark>) {
                 $struct->{name} = $SSID;
                 $struct->{count}++;
                 $struct->{lastSeen} = time;
+
                 writeredis($redis, $SSID, $struct);
             } else {
                 my $age = time - $struct->{lastSeen};
-                print "Double of $SSID? (lastseen: $struct->{lastSeen}, maccount: $struct->{macs}->{$macAddress},  age: $age)\n" if($h{DEBUG});
+                log_message(DEBUG, "Double of $SSID? (lastseen: $struct->{lastSeen}, maccount: $struct->{macs}->{$macAddress},  age: $age)\n");
             }
+        } else {
+            log_message(DEBUG, "Broadcast request from $blob->{layers}->{wlan_sa}->[0]");
         }
-    } elsif($h{DEBUG}) {
-        print STDERR "HUH?: $line\n";
+    } elsif(defined($blob->{index})) {
+        log_message(DEBUG3, "Irrelevant index data from tshark: [$line]");
+    } else {
+        log_message(DEBUG2, "Unknown packet: [$line]");
+#        use Data::Dumper;
+#        print Dumper $blob;
     }
 
 }
@@ -131,4 +151,30 @@ sub readredis {
     my $json = $robject->get($key) or return {};
     my $struct = JSON->new->allow_nonref->decode($json) or warn "Incorrect data: [$json]";
     return $struct;
+}
+
+sub log_message {
+    my ($level, @messages) = @_;
+    if($level <= $h{DEBUG}) {
+        for my $message (@messages) {
+            print STDERR "($level:$h{DEBUG}) $message\n" if($level <= $h{DEBUG});
+        }
+        return @messages if wantarray;
+        return $level;
+    }
+    return;
+}
+
+# standard json decode croaks on incorrect json, we want to continue
+sub safe_json_decode {
+    my ($json) = @_;
+    my $decoded;
+    eval {
+        $decoded = decode_json($json);
+    };
+    if($@) {
+        log_message(DEBUG, "JSON Decoding error: [$@]");
+        log_message(DEBUG2, "Failed JSON data: [$json]");
+    }
+    return $decoded;
 }
