@@ -43,6 +43,21 @@ Depends on:
 * libpoe-perl (POE:Component::Server::TCP, POE::Filter::HTTPD)
 * libhttp-message-perl (HTTP::Response)
 
+## redis-dancer-httpd.pl
+Serves the redis database as JSON via a webserver
+Example: ./redis-httpd.pl --listenport=8080
+Depends on:
+* redis-server
+* perl
+* libredis-perl (Redis)
+* libjson-perl (JSON)
+* libdancer2-perl (Dancer2)
+
+Can handle webrequests such as:
+/all                # all keys/ssids
+/match/*foo*        # glob matched keys/ssids
+/exclude/key1/key2/ # blacklisting keys/ssids
+
 ## Preparing wireless devices
 * sudo /sbin/iw phy <phy-device-name> interface add <name-of-monitor-device> type monitor
 * sudo /sbin/ip link set up dev <name-of-monitor-device>
