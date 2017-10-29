@@ -59,12 +59,10 @@ log_message(DEBUG, "Set Redis DB to: $h{redisdb}");
 
 my $ssid;
 
-
 my $fields = '-e wlan.sa -e wlan.da -e wlan_mgt.ssid';
 my $tshark_command = "$h{tsharkPath} $monitor_mode -q -i $h{device} -T ek $fields -n -l subtype probereq";
 
 log_message(DEBUG2, "Running [$tshark_command]");
-#open(my $tshark, "$h{tsharkPath} $monitor_mode -i $h{device} -T ek -e wlan.sa -e wlan.da -e wlan_mgt.ssid -n -l subtype probereq |") || die "Cannot spawn tshark process!\n";
 open(my $tshark, "$tshark_command |") or die "Cannot spawn tshark process($!): $tshark_command\n";
 while (my $line = <$tshark>) {
     next if($line =~ /^\s*$/);
