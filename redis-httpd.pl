@@ -61,6 +61,10 @@ POE::Component::Server::TCP->new(
       }
     );
 
+    print STDERR "[$request_fields]\n";
+
+    ## Response
+
     my $response = HTTP::Response->new(200);
     $response->push_header('Content-type', 'application/json');
     $response->push_header('Access-Control-Allow-Origin', '*');
