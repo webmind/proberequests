@@ -22,7 +22,7 @@ GetOptions (\%h, 'device=s', 'redis=s', 'redisname=s', 'redisdb=i', 'tsharkPath=
 
 if((!defined $h{device})) {
     print STDERR "Usage: $0 --device=<wireless device> <--redis=hostname:port> <--redisname=dbname> <--redisdb=dbnumber> <--tsharkPath=/path/to/tshark> <--monitor> <--DEBUG>\n\n";
-    print STDERR 
+    print STDERR
 "       --device        wireless device for monitoring
         --redis         redis host:port to connect to (default: 127.0.0.1:6379)
         --redisname     name of redisconnection (default: probereqdb)
@@ -70,8 +70,8 @@ while (my $line = <$tshark>) {
     log_message(DEBUG3, $line);
     my $blob = safe_json_decode($line);
 
-    if(defined($blob->{layers}) and 
-       defined($blob->{layers}->{wlan_sa}) and 
+    if(defined($blob->{layers}) and
+       defined($blob->{layers}->{wlan_sa}) and
        defined($blob->{layers}->{wlan_da}) and
        defined($blob->{layers}->{wlan_ssid})) {
         my $macAddress = $blob->{layers}->{wlan_sa}->[0];
@@ -79,8 +79,8 @@ while (my $line = <$tshark>) {
         if($SSID ne '') {
 
             my $struct = readredis($redis, $SSID);
-            if(!defined($struct->{lastSeen}) or 
-               !defined($struct->{macs}->{$macAddress}) or 
+            if(!defined($struct->{lastSeen}) or
+               !defined($struct->{macs}->{$macAddress}) or
                (time - $struct->{lastSeen}) >= 1) {
 
                 if($h{DEBUG} and !defined($struct->{lastSeen})) {
