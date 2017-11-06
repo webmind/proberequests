@@ -59,7 +59,7 @@ log_message(DEBUG, "Set Redis DB to: $h{redisdb}");
 
 my $ssid;
 
-my $fields = '-e wlan.sa -e wlan.da -e wlan_mgt.ssid';
+my $fields = '-e wlan.sa -e wlan.da -e wlan.ssid';
 my $tshark_command = "$h{tsharkPath} $monitor_mode -q -i $h{device} -T ek $fields -n -l subtype probereq";
 
 log_message(DEBUG2, "Running [$tshark_command]");
@@ -73,9 +73,9 @@ while (my $line = <$tshark>) {
     if(defined($blob->{layers}) and 
        defined($blob->{layers}->{wlan_sa}) and 
        defined($blob->{layers}->{wlan_da}) and
-       defined($blob->{layers}->{wlan_mgt_ssid})) {
+       defined($blob->{layers}->{wlan_ssid})) {
         my $macAddress = $blob->{layers}->{wlan_sa}->[0];
-        my $SSID = $blob->{layers}->{wlan_mgt_ssid}->[0];
+        my $SSID = $blob->{layers}->{wlan_ssid}->[0];
         if($SSID ne '') {
 
             my $struct = readredis($redis, $SSID);
