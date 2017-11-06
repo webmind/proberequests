@@ -59,7 +59,7 @@ log_message(DEBUG, "Set Redis DB to: $h{redisdb}");
 
 my $ssid;
 
-my $fields = '-e wlan.sa -e wlan.da -e wlan.ssid';
+my $fields = '-e wlan.sa -e wlan.da -e wlan.ssid -e wlan.fcs.bad_checksum';
 my $tshark_command = "$h{tsharkPath} $monitor_mode -q -i $h{device} -T ek $fields -n -l subtype probereq";
 
 log_message(DEBUG2, "Running [$tshark_command]");
@@ -76,8 +76,10 @@ while (my $line = <$tshark>) {
        defined($blob->{layers}->{wlan_ssid})) {
         my $macAddress = $blob->{layers}->{wlan_sa}->[0];
         my $SSID = $blob->{layers}->{wlan_ssid}->[0];
-        if($SSID ne '') {
-
+        my $BADCHECKSUM = $blob->{layers}->{wlan_fcs_bad_checksum}->[0];
+        if($BADCHECKSUM) {
+          log_message(DEBUG, "Bad checksum for $SSID");
+        } elsif($SSID ne '') {
             my $struct = readredis($redis, $SSID);
             if(!defined($struct->{lastSeen}) or
                !defined($struct->{macs}->{$macAddress}) or
