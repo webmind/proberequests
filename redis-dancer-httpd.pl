@@ -62,6 +62,26 @@ get '/exclude/**' => sub {
 
 };
 
+get '/iexclude/**' => sub {
+    my ($splat) = splat;
+    my @blacklist = @{$splat};
+    print "blacklist: ", join(',', @blacklist), "\n" if($h{DEBUG});
+    my %db = redis2hash('*');
+    for my $key (keys %db) {
+        if(grep { lc($_) eq lc($key) } @blacklist) {
+            delete($db{$key});
+            print "deleted $key\n";
+
+        }
+    }
+
+    set content_type => 'application/json';
+    set header 'Access-Control-Allow-Origin' => '*';
+    return JSON->new->allow_nonref->pretty->encode(\%db);
+
+};
+
+
 
 #get '' => sub { }
  
